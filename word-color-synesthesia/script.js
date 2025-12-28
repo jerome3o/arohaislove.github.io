@@ -122,6 +122,133 @@ const clearBtn = document.getElementById('clearBtn');
 const colorVisualization = document.getElementById('colorVisualization');
 const wordBreakdown = document.getElementById('wordBreakdown');
 const exampleBtns = document.querySelectorAll('.example-btn');
+const micBtn = document.getElementById('micBtn');
+const micStatus = document.getElementById('micStatus');
+
+// Speech Recognition Setup
+let recognition = null;
+let isListening = false;
+
+// Check if browser supports speech recognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('recording');
+        micStatus.textContent = '🎤 Listening... (click microphone again to stop)';
+        micStatus.className = 'mic-status listening';
+    };
+
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Update textarea with final transcript
+        if (finalTranscript) {
+            textInput.value += finalTranscript;
+        }
+
+        // Show interim results in status
+        if (interimTranscript) {
+            micStatus.textContent = `🎤 "${interimTranscript}"`;
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        let errorMessage = 'Error: ';
+
+        switch(event.error) {
+            case 'no-speech':
+                errorMessage += 'No speech detected. Try again.';
+                break;
+            case 'audio-capture':
+                errorMessage += 'No microphone found.';
+                break;
+            case 'not-allowed':
+                errorMessage += 'Microphone permission denied.';
+                break;
+            default:
+                errorMessage += event.error;
+        }
+
+        micStatus.textContent = errorMessage;
+        micStatus.className = 'mic-status error';
+        stopListening();
+    };
+
+    recognition.onend = () => {
+        if (isListening) {
+            // If we're still supposed to be listening, restart
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Failed to restart recognition:', e);
+                stopListening();
+            }
+        }
+    };
+} else {
+    // Browser doesn't support speech recognition
+    console.warn('Speech recognition not supported in this browser');
+    if (micBtn) {
+        micBtn.style.display = 'none';
+    }
+    if (micStatus) {
+        micStatus.textContent = 'Voice input not supported in this browser';
+        micStatus.className = 'mic-status error';
+    }
+}
+
+function startListening() {
+    if (!recognition) return;
+
+    try {
+        recognition.start();
+        isListening = true;
+    } catch (e) {
+        console.error('Failed to start recognition:', e);
+        micStatus.textContent = 'Error: Could not start voice recognition';
+        micStatus.className = 'mic-status error';
+    }
+}
+
+function stopListening() {
+    if (!recognition) return;
+
+    isListening = false;
+    try {
+        recognition.stop();
+    } catch (e) {
+        console.error('Failed to stop recognition:', e);
+    }
+    micBtn.classList.remove('recording');
+    micStatus.textContent = '';
+    micStatus.className = 'mic-status';
+}
+
+function toggleListening() {
+    if (isListening) {
+        stopListening();
+    } else {
+        startListening();
+    }
+}
 
 // Visualize function
 function visualize() {
@@ -164,6 +291,11 @@ function getContrastColor(hexColor) {
 
 // Clear function
 function clear() {
+    // Stop listening if active
+    if (isListening) {
+        stopListening();
+    }
+
     textInput.value = '';
     colorVisualization.style.background = '';
     colorVisualization.innerHTML = '<p class="placeholder">Your color gradient will appear here...</p>';
@@ -173,6 +305,11 @@ function clear() {
 // Event listeners
 visualizeBtn.addEventListener('click', visualize);
 clearBtn.addEventListener('click', clear);
+
+// Microphone button event listener
+if (micBtn) {
+    micBtn.addEventListener('click', toggleListening);
+}
 
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {

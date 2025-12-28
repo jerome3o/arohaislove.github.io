@@ -28,13 +28,26 @@
 
             <!-- Input section -->
             <div class="input-section">
-                <textarea
-                    id="textInput"
-                    placeholder="Paste a speech, quote, or sentence here to see its emotional color spectrum..."
-                    rows="6"
-                ></textarea>
-                <button id="visualizeBtn" class="btn-primary">Visualize Colors</button>
-                <button id="clearBtn" class="btn-secondary">Clear</button>
+                <div class="textarea-container">
+                    <textarea
+                        id="textInput"
+                        placeholder="Type, paste, or speak your text to see its emotional color spectrum..."
+                        rows="6"
+                    ></textarea>
+                    <button id="micBtn" class="mic-button" title="Click to speak">
+                        <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div id="micStatus" class="mic-status"></div>
+                <div class="button-group">
+                    <button id="visualizeBtn" class="btn-primary">Visualize Colors</button>
+                    <button id="clearBtn" class="btn-secondary">Clear</button>
+                </div>
             </div>
 
             <!-- Example speeches -->
@@ -65,7 +78,7 @@
             <!-- Info section -->
             <div class="info-section">
                 <h3>How it works</h3>
-                <p>This tool maps words to colors based on their emotional and situational qualities:</p>
+                <p>This tool maps words to colors based on their emotional and situational qualities. You can type, paste, or <strong>speak your text</strong> using the microphone button:</p>
                 <ul>
                     <li><strong>Positive words</strong> → Bright, warm colors (yellows, light blues, greens)</li>
                     <li><strong>Negative words</strong> → Dark, cool colors (grays, dark blues, purples)</li>
@@ -73,7 +86,7 @@
                     <li><strong>Peaceful words</strong> → Calm, serene colors (light blues, soft greens)</li>
                     <li><strong>Neutral words</strong> → Balanced, muted colors (beiges, light grays)</li>
                 </ul>
-                <p>The gradient above shows how the emotional tone flows through the text, creating a visual representation of the text's emotional journey.</p>
+                <p>The gradient shows how the emotional tone flows through the text, creating a visual representation of the text's emotional journey. Click the microphone button and start speaking to see your words appear in real-time!</p>
             </div>
         </div>
     </main>
