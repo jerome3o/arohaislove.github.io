@@ -7,7 +7,6 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -26,7 +25,34 @@
 
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { Calendar, Heart, Clock, TrendingUp } = lucide;
+
+        // Simple SVG icons as React components
+        const ClockIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+                <path d="M12 6v6l4 2" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+        );
+
+        const CalendarIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
+            </svg>
+        );
+
+        const HeartIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" strokeWidth="2"/>
+            </svg>
+        );
+
+        const TrendingUpIcon = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M23 6l-9.5 9.5-5-5L1 18" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M17 6h6v6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        );
 
         const PerspectiveEngine = () => {
           const [currentAge, setCurrentAge] = useState(30);
@@ -183,7 +209,7 @@
                 <div className="grid md:grid-cols-4 gap-6">
                   <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 space-y-3">
                     <div className="flex items-center gap-3 text-gray-400">
-                      <Clock className="w-5 h-5" />
+                      <ClockIcon />
                       <span className="text-sm font-light tracking-wide">Days Remaining</span>
                     </div>
                     <p className="text-4xl font-extralight text-gray-100">
@@ -193,7 +219,7 @@
 
                   <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 space-y-3">
                     <div className="flex items-center gap-3 text-gray-400">
-                      <Calendar className="w-5 h-5" />
+                      <CalendarIcon />
                       <span className="text-sm font-light tracking-wide">Weekends Left</span>
                     </div>
                     <p className="text-4xl font-extralight text-gray-100">
@@ -203,7 +229,7 @@
 
                   <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 space-y-3">
                     <div className="flex items-center gap-3 text-gray-400">
-                      <Heart className="w-5 h-5" />
+                      <HeartIcon />
                       <span className="text-sm font-light tracking-wide">Healthy Years</span>
                     </div>
                     <p className="text-4xl font-extralight text-gray-100">
@@ -213,7 +239,7 @@
 
                   <div className="bg-gray-800/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 space-y-3">
                     <div className="flex items-center gap-3 text-gray-400">
-                      <TrendingUp className="w-5 h-5" />
+                      <TrendingUpIcon />
                       <span className="text-sm font-light tracking-wide">Life Lived</span>
                     </div>
                     <p className="text-4xl font-extralight text-gray-100">
