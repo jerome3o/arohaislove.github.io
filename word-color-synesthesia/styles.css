@@ -71,11 +71,27 @@ h1 {
     justify-content: center;
     border: 2px solid #e0e0e0;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    background: #f8f9fa;
 }
 
 .visualization-area .placeholder {
     color: #999;
     font-style: italic;
+    position: absolute;
+    z-index: 1;
+}
+
+#colorCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    z-index: 2;
+    display: none;
 }
 
 /* Word Breakdown */

@@ -124,6 +124,8 @@ const wordBreakdown = document.getElementById('wordBreakdown');
 const exampleBtns = document.querySelectorAll('.example-btn');
 const micBtn = document.getElementById('micBtn');
 const micStatus = document.getElementById('micStatus');
+const canvas = document.getElementById('colorCanvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
 
 // Speech Recognition Setup
 let recognition = null;
@@ -250,6 +252,74 @@ function toggleListening() {
     }
 }
 
+// Draw smooth, blended color visualization on canvas
+function drawColorVisualization(colors) {
+    if (!canvas || !ctx) return;
+
+    // Set canvas size to match container
+    const rect = colorVisualization.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    if (colors.length === 0) return;
+
+    // Create smooth color blending using overlapping circles
+    const numColors = colors.length;
+    const positions = [];
+
+    // Generate random positions for color blobs with some spacing
+    for (let i = 0; i < numColors; i++) {
+        const angle = (i / numColors) * Math.PI * 2;
+        const distance = Math.random() * 0.3 + 0.2; // 0.2 to 0.5
+        const x = rect.width * (0.5 + Math.cos(angle) * distance);
+        const y = rect.height * (0.5 + Math.sin(angle) * distance);
+        positions.push({ x, y, color: colors[i] });
+    }
+
+    // Enable smooth blending
+    ctx.globalCompositeOperation = 'screen';
+
+    // Draw multiple layers of blurred circles for smooth blending
+    const maxRadius = Math.max(rect.width, rect.height) * 0.6;
+
+    positions.forEach((pos, index) => {
+        const gradient = ctx.createRadialGradient(
+            pos.x, pos.y, 0,
+            pos.x, pos.y, maxRadius
+        );
+
+        // Parse hex color to RGB
+        const r = parseInt(pos.color.slice(1, 3), 16);
+        const g = parseInt(pos.color.slice(3, 5), 16);
+        const b = parseInt(pos.color.slice(5, 7), 16);
+
+        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.8)`);
+        gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.4)`);
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, rect.width, rect.height);
+    });
+
+    // Reset composite operation
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Show canvas
+    canvas.style.display = 'block';
+
+    // Hide placeholder
+    const placeholder = colorVisualization.querySelector('.placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+}
+
 // Visualize function
 function visualize() {
     const text = textInput.value.trim();
@@ -260,11 +330,9 @@ function visualize() {
 
     const colorData = analyzeText(text);
     const colors = colorData.map(item => item.color);
-    const gradient = createGradient(colors);
 
-    // Update visualization area
-    colorVisualization.style.background = gradient;
-    colorVisualization.innerHTML = '';
+    // Draw smooth color visualization
+    drawColorVisualization(colors);
 
     // Update word breakdown
     wordBreakdown.innerHTML = '<h3>Word-by-Word Breakdown:</h3><div class="word-chips"></div>';
@@ -297,8 +365,20 @@ function clear() {
     }
 
     textInput.value = '';
-    colorVisualization.style.background = '';
-    colorVisualization.innerHTML = '<p class="placeholder">Your color gradient will appear here...</p>';
+
+    // Hide canvas and show placeholder
+    if (canvas) {
+        canvas.style.display = 'none';
+        if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    const placeholder = colorVisualization.querySelector('.placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'block';
+    }
+
     wordBreakdown.innerHTML = '';
 }
 
