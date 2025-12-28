@@ -50,12 +50,14 @@ const religionData = {
         unique: [
             'Four Noble Truths about suffering',
             'Eightfold Path to enlightenment',
-            'Concept of Nirvana/Enlightenment',
+            'Nirvana as cessation of craving and suffering',
             'No belief in a creator God',
-            'Emphasis on meditation and mindfulness',
-            'Cycle of rebirth (Samsara)',
+            'Rejection of the eternal self/soul (anatman)',
+            'Rejection of the Vedas as authority',
+            'Rejection of the caste system',
             'Middle Way between extremes',
-            'Buddha (Siddhartha Gautama) as teacher, not deity'
+            'Buddha (Siddhartha Gautama) as teacher, not deity',
+            'Emphasis on direct experience and meditation'
         ]
     },
     hinduism: {
@@ -63,14 +65,16 @@ const religionData = {
         color: '#E67E22',
         position: { cx: 650, cy: 500 },
         unique: [
+            'Belief in Brahman (ultimate reality)',
+            'Atman (eternal soul) that reincarnates',
             'Multiple deities as manifestations of Brahman',
             'Caste system (traditional)',
-            'Vedas as ancient sacred texts',
-            'Concept of Dharma (duty/righteousness)',
-            'Karma and reincarnation',
+            'Vedas as eternal sacred texts',
+            'Moksha as union with Brahman',
             'Yoga as spiritual practice',
             'Sacred river Ganges',
-            'Diverse practices and regional variations'
+            'Diverse practices and regional variations',
+            'Guru tradition and lineages'
         ]
     }
 };
@@ -107,15 +111,18 @@ const sharedPrinciples = {
     eastern: {
         title: 'Shared by Eastern Religions (Buddhism, Hinduism)',
         principles: [
-            'Cycle of birth, death, and rebirth',
-            'Karma: Actions have consequences',
-            'Meditation as spiritual practice',
-            'Seeking liberation from suffering',
-            'Ahimsa: Non-violence and respect for all life',
-            'Guru/teacher tradition',
-            'Sacred texts and wisdom literature',
-            'Multiple paths to spiritual truth'
-        ]
+            'Samsara: Cycle of birth, death, and rebirth across lifetimes',
+            'Karma: Actions have moral consequences extending beyond this life',
+            'Liberation as ultimate goal (Moksha/Nirvana) from the cycle of rebirth',
+            'Dharma: Cosmic order and religious teachings (though understood differently)',
+            'Meditation and contemplative practice as central spiritual paths',
+            'Ahimsa: Non-violence and compassion for all beings',
+            'Acceptance that suffering is inherent to existence',
+            'Guru/teacher tradition for spiritual guidance',
+            'Recognition that good actions lead to favorable outcomes across lifetimes',
+            'Common cultural origins in the Indian subcontinent'
+        ],
+        note: 'Important: While sharing these concepts, Buddhism and Hinduism differ significantly. Buddhism rejects core Hindu concepts like the eternal soul (atman), the Vedas as scripture, and the caste system.'
     },
     christianity_islam: {
         title: 'Christianity & Islam',
@@ -238,6 +245,11 @@ function showSharedInfo(type) {
         html += `<li>${principle}</li>`;
     });
     html += '</ul>';
+
+    // Add note if it exists
+    if (info.note) {
+        html += `<p style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;"><strong>Note:</strong> ${info.note}</p>`;
+    }
 
     infoContent.innerHTML = html;
 }
