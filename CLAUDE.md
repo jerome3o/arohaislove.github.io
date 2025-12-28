@@ -194,6 +194,67 @@ Before pushing:
 - **Push when done:** Always push your completed work to the designated branch
 - **Never push to main directly:** Always use your assigned branch
 
+### Creating Pull Requests - SIMPLE WORKFLOW
+
+After you push your commits, the EASIEST way to create a pull request is:
+
+1. **Go directly to the repository on GitHub:**
+   ```
+   https://github.com/arohaislove/arohaislove.github.io
+   ```
+
+2. **GitHub will automatically show a yellow banner** at the top of the page saying:
+   - "Your recently pushed branches: claude/branch-name (X minutes ago)"
+   - With a big green **"Compare & pull request"** button
+
+3. **Click that green button** - it's the simplest way!
+
+4. **If you don't see the banner:**
+   - Click the "Pull requests" tab at the top
+   - Click the green "New pull request" button
+   - Select your branch from the dropdown
+
+**IMPORTANT: Do NOT use the `/pull/new/branch-name` URL pattern** - it doesn't work reliably after the first PR.
+
+### Handling Follow-Up Changes After a PR is Merged
+
+**Scenario:** You merged a PR, then realized you need to make more changes to the same feature.
+
+**THE SIMPLE SOLUTION:**
+
+1. **Just push your new commits to the SAME branch** you were already using:
+   ```bash
+   # Make your changes to files
+   git add .
+   git commit -m "Your commit message"
+   git push
+   ```
+
+2. **Then go to the main repo page:**
+   ```
+   https://github.com/arohaislove/arohaislove.github.io
+   ```
+
+3. **GitHub will show the yellow banner again** with the "Compare & pull request" button
+
+4. **Click it to create a NEW pull request** with your additional changes
+
+**Why this works:**
+- Your branch still exists even after the PR is merged
+- New commits to that branch can create a new PR
+- GitHub automatically detects new commits and shows the banner
+- This is much simpler than creating new branches for small follow-ups
+
+**Alternative (if branch was deleted):**
+If the branch was deleted after merge, you'll need to create a new branch:
+```bash
+# Create and switch to a new branch
+git checkout -b claude/feature-name-v2-XXXXX
+git push -u origin claude/feature-name-v2-XXXXX
+```
+
+Then follow the same steps above.
+
 ## Common Tasks
 
 ### Add a simple HTML/CSS/JS project
