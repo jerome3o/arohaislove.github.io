@@ -122,6 +122,203 @@ const clearBtn = document.getElementById('clearBtn');
 const colorVisualization = document.getElementById('colorVisualization');
 const wordBreakdown = document.getElementById('wordBreakdown');
 const exampleBtns = document.querySelectorAll('.example-btn');
+const micBtn = document.getElementById('micBtn');
+const micStatus = document.getElementById('micStatus');
+const canvas = document.getElementById('colorCanvas');
+const ctx = canvas ? canvas.getContext('2d') : null;
+
+// Speech Recognition Setup
+let recognition = null;
+let isListening = false;
+
+// Check if browser supports speech recognition
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.add('recording');
+        micStatus.textContent = '🎤 Listening... (click microphone again to stop)';
+        micStatus.className = 'mic-status listening';
+    };
+
+    recognition.onresult = (event) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+                finalTranscript += transcript + ' ';
+            } else {
+                interimTranscript += transcript;
+            }
+        }
+
+        // Update textarea with final transcript
+        if (finalTranscript) {
+            textInput.value += finalTranscript;
+        }
+
+        // Show interim results in status
+        if (interimTranscript) {
+            micStatus.textContent = `🎤 "${interimTranscript}"`;
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        let errorMessage = 'Error: ';
+
+        switch(event.error) {
+            case 'no-speech':
+                errorMessage += 'No speech detected. Try again.';
+                break;
+            case 'audio-capture':
+                errorMessage += 'No microphone found.';
+                break;
+            case 'not-allowed':
+                errorMessage += 'Microphone permission denied.';
+                break;
+            default:
+                errorMessage += event.error;
+        }
+
+        micStatus.textContent = errorMessage;
+        micStatus.className = 'mic-status error';
+        stopListening();
+    };
+
+    recognition.onend = () => {
+        if (isListening) {
+            // If we're still supposed to be listening, restart
+            try {
+                recognition.start();
+            } catch (e) {
+                console.error('Failed to restart recognition:', e);
+                stopListening();
+            }
+        }
+    };
+} else {
+    // Browser doesn't support speech recognition
+    console.warn('Speech recognition not supported in this browser');
+    if (micBtn) {
+        micBtn.style.display = 'none';
+    }
+    if (micStatus) {
+        micStatus.textContent = 'Voice input not supported in this browser';
+        micStatus.className = 'mic-status error';
+    }
+}
+
+function startListening() {
+    if (!recognition) return;
+
+    try {
+        recognition.start();
+        isListening = true;
+    } catch (e) {
+        console.error('Failed to start recognition:', e);
+        micStatus.textContent = 'Error: Could not start voice recognition';
+        micStatus.className = 'mic-status error';
+    }
+}
+
+function stopListening() {
+    if (!recognition) return;
+
+    isListening = false;
+    try {
+        recognition.stop();
+    } catch (e) {
+        console.error('Failed to stop recognition:', e);
+    }
+    micBtn.classList.remove('recording');
+    micStatus.textContent = '';
+    micStatus.className = 'mic-status';
+}
+
+function toggleListening() {
+    if (isListening) {
+        stopListening();
+    } else {
+        startListening();
+    }
+}
+
+// Draw smooth, blended color visualization on canvas
+function drawColorVisualization(colors) {
+    if (!canvas || !ctx) return;
+
+    // Set canvas size to match container
+    const rect = colorVisualization.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    // Clear canvas
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    if (colors.length === 0) return;
+
+    // Create smooth color blending using overlapping circles
+    const numColors = colors.length;
+    const positions = [];
+
+    // Generate random positions for color blobs with some spacing
+    for (let i = 0; i < numColors; i++) {
+        const angle = (i / numColors) * Math.PI * 2;
+        const distance = Math.random() * 0.3 + 0.2; // 0.2 to 0.5
+        const x = rect.width * (0.5 + Math.cos(angle) * distance);
+        const y = rect.height * (0.5 + Math.sin(angle) * distance);
+        positions.push({ x, y, color: colors[i] });
+    }
+
+    // Enable smooth blending
+    ctx.globalCompositeOperation = 'screen';
+
+    // Draw multiple layers of blurred circles for smooth blending
+    const maxRadius = Math.max(rect.width, rect.height) * 0.6;
+
+    positions.forEach((pos, index) => {
+        const gradient = ctx.createRadialGradient(
+            pos.x, pos.y, 0,
+            pos.x, pos.y, maxRadius
+        );
+
+        // Parse hex color to RGB
+        const r = parseInt(pos.color.slice(1, 3), 16);
+        const g = parseInt(pos.color.slice(3, 5), 16);
+        const b = parseInt(pos.color.slice(5, 7), 16);
+
+        gradient.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.8)`);
+        gradient.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.4)`);
+        gradient.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, rect.width, rect.height);
+    });
+
+    // Reset composite operation
+    ctx.globalCompositeOperation = 'source-over';
+
+    // Show canvas
+    canvas.style.display = 'block';
+
+    // Hide placeholder
+    const placeholder = colorVisualization.querySelector('.placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'none';
+    }
+}
 
 // Visualize function
 function visualize() {
@@ -133,11 +330,9 @@ function visualize() {
 
     const colorData = analyzeText(text);
     const colors = colorData.map(item => item.color);
-    const gradient = createGradient(colors);
 
-    // Update visualization area
-    colorVisualization.style.background = gradient;
-    colorVisualization.innerHTML = '';
+    // Draw smooth color visualization
+    drawColorVisualization(colors);
 
     // Update word breakdown
     wordBreakdown.innerHTML = '<h3>Word-by-Word Breakdown:</h3><div class="word-chips"></div>';
@@ -164,15 +359,37 @@ function getContrastColor(hexColor) {
 
 // Clear function
 function clear() {
+    // Stop listening if active
+    if (isListening) {
+        stopListening();
+    }
+
     textInput.value = '';
-    colorVisualization.style.background = '';
-    colorVisualization.innerHTML = '<p class="placeholder">Your color gradient will appear here...</p>';
+
+    // Hide canvas and show placeholder
+    if (canvas) {
+        canvas.style.display = 'none';
+        if (ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }
+
+    const placeholder = colorVisualization.querySelector('.placeholder');
+    if (placeholder) {
+        placeholder.style.display = 'block';
+    }
+
     wordBreakdown.innerHTML = '';
 }
 
 // Event listeners
 visualizeBtn.addEventListener('click', visualize);
 clearBtn.addEventListener('click', clear);
+
+// Microphone button event listener
+if (micBtn) {
+    micBtn.addEventListener('click', toggleListening);
+}
 
 textInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && e.ctrlKey) {
