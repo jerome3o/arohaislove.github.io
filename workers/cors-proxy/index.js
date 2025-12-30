@@ -23,11 +23,28 @@ export default {
     }
 
     try {
+      // Clone the request to avoid body already read issues
+      const requestClone = request.clone();
+
+      // Get the request body
+      const requestBody = await requestClone.text();
+
+      // Build headers for Anthropic API (exclude problematic headers)
+      const headers = new Headers();
+      headers.set('Content-Type', 'application/json');
+
+      // Copy important headers from original request
+      const apiKey = request.headers.get('x-api-key');
+      const anthropicVersion = request.headers.get('anthropic-version');
+
+      if (apiKey) headers.set('x-api-key', apiKey);
+      if (anthropicVersion) headers.set('anthropic-version', anthropicVersion);
+
       // Forward request to Anthropic API
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: request.headers,
-        body: request.body
+        headers: headers,
+        body: requestBody
       });
 
       // Get response data
