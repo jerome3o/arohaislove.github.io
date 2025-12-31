@@ -744,15 +744,19 @@
     // Submit function
     async function submitDream() {
       const apiKey = localStorage.getItem('oneiros_api_key');
-      const proxyUrl = localStorage.getItem('oneiros_proxy');
+      const proxyUrl = PROXY_URL; // Always use the hardcoded proxy URL
 
-      if (!apiKey || !proxyUrl) {
+      console.log('submitDream called. API key exists:', !!apiKey, 'Proxy URL:', proxyUrl);
+
+      if (!apiKey) {
+        console.log('No API key found, opening settings modal');
         pendingSubmit = true;
         settingsOverlay.classList.add('visible');
         return;
       }
 
       if (!currentImageData) {
+        console.log('No image data found');
         alert('Please upload an image first');
         return;
       }
@@ -763,6 +767,7 @@
 
       try {
         console.log('Submitting dream to:', proxyUrl);
+        console.log('API key starts with:', apiKey.substring(0, 10) + '...');
         const context = contextInput.value.trim();
         const base64Data = currentImageData.split(',')[1];
         const mediaType = currentImageData.split(';')[0].split(':')[1];
