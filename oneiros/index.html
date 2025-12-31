@@ -512,51 +512,6 @@
       border-top: 1px solid var(--phantom);
     }
 
-    /* API Key Modal */
-    .settings-btn {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 44px;
-      height: 44px;
-      background: white;
-      border: 1px solid var(--phantom);
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--accent);
-      transition: all 0.3s ease;
-      z-index: 100;
-    }
-
-    .settings-btn:hover {
-      border-color: var(--gold);
-      color: var(--gold);
-    }
-
-    .settings-btn svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .api-input {
-      width: 100%;
-      padding: 1rem;
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 0.9rem;
-      border: 1px solid var(--paper-dark);
-      border-radius: 2px;
-      background: white;
-      margin-bottom: 1rem;
-    }
-
-    .api-input:focus {
-      outline: none;
-      border-color: var(--gold);
-    }
-
     /* Responsive */
     @media (max-width: 600px) {
       .container {
@@ -645,13 +600,6 @@
     </div>
   </div>
 
-  <!-- Settings Button -->
-  <button class="settings-btn" id="settingsBtn">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-    </svg>
-  </button>
 
   <!-- Modal for viewing entries -->
   <div class="modal-overlay" id="modalOverlay">
@@ -664,26 +612,15 @@
     </div>
   </div>
 
-  <!-- Settings Modal -->
-  <div class="modal-overlay" id="settingsOverlay">
-    <div class="modal">
-      <button class="modal-close" id="settingsClose">&times;</button>
-      <h2 style="font-family: 'Cormorant Garamond', serif; font-weight: 400; margin-bottom: 1.5rem;">Settings</h2>
-      <label style="margin-bottom: 0.5rem;">Anthropic API Key <span class="label-hint">— required</span></label>
-      <input type="password" class="api-input" id="apiKeyInput" placeholder="sk-ant-...">
-      <label style="margin-bottom: 0.5rem;">Proxy URL <span class="label-hint">— pre-configured ✓</span></label>
-      <input type="text" class="api-input" id="proxyInput" placeholder="https://cors-proxy.arohaislove.workers.dev/anthropic" readonly style="background: #f5f2eb; color: #666;">
-      <p style="font-family: 'Instrument Sans', sans-serif; font-size: 0.85rem; color: #666; margin-bottom: 1rem;">The CORS proxy is already configured. You only need to add your API key.</p>
-      <button class="submit-btn" id="saveSettingsBtn">Save</button>
-    </div>
-  </div>
 
   <script>
     // State
     let currentImage = null;
     let currentImageData = null;
     let entries = JSON.parse(localStorage.getItem('oneiros_entries') || '[]');
-    let pendingSubmit = false; // Track if we need to auto-submit after saving settings
+
+    // Hardcoded API endpoint (worker with baked-in API key)
+    const PROXY_URL = 'https://cors-proxy.arohaislove.workers.dev/anthropic';
 
     // Elements
     const imageInput = document.getElementById('imageInput');
@@ -705,22 +642,6 @@
     const modalDate = document.getElementById('modalDate');
     const modalPoem = document.getElementById('modalPoem');
     const modalContext = document.getElementById('modalContext');
-    const settingsBtn = document.getElementById('settingsBtn');
-    const settingsOverlay = document.getElementById('settingsOverlay');
-    const settingsClose = document.getElementById('settingsClose');
-    const apiKeyInput = document.getElementById('apiKeyInput');
-    const proxyInput = document.getElementById('proxyInput');
-    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-
-    // Load settings with hardcoded proxy URL
-    const PROXY_URL = 'https://cors-proxy.arohaislove.workers.dev/anthropic';
-    apiKeyInput.value = localStorage.getItem('oneiros_api_key') || '';
-    proxyInput.value = localStorage.getItem('oneiros_proxy') || PROXY_URL;
-
-    // Pre-fill proxy on first load
-    if (!localStorage.getItem('oneiros_proxy')) {
-      localStorage.setItem('oneiros_proxy', PROXY_URL);
-    }
 
     // Image handling
     imageInput.addEventListener('change', handleImageSelect);
@@ -743,15 +664,6 @@
 
     // Submit function
     async function submitDream() {
-      const apiKey = localStorage.getItem('oneiros_api_key');
-      const proxyUrl = localStorage.getItem('oneiros_proxy');
-
-      if (!apiKey || !proxyUrl) {
-        pendingSubmit = true;
-        settingsOverlay.classList.add('visible');
-        return;
-      }
-
       if (!currentImageData) {
         alert('Please upload an image first');
         return;
@@ -762,7 +674,7 @@
       response.classList.remove('visible');
 
       try {
-        console.log('Submitting dream to:', proxyUrl);
+        console.log('Submitting dream to:', PROXY_URL);
         const context = contextInput.value.trim();
         const base64Data = currentImageData.split(',')[1];
         const mediaType = currentImageData.split(';')[0].split(':')[1];
@@ -811,11 +723,10 @@ Be evocative, not diagnostic. You are not analyzing—you are dreaming alongside
         };
 
         console.log('Making API request...');
-        const apiResponse = await fetch(proxyUrl, {
+        const apiResponse = await fetch(PROXY_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': apiKey,
             'anthropic-version': '2023-06-01'
           },
           body: JSON.stringify(requestBody)
@@ -944,47 +855,6 @@ Be evocative, not diagnostic. You are not analyzing—you are dreaming alongside
     modalOverlay.addEventListener('click', (e) => {
       if (e.target === modalOverlay) {
         modalOverlay.classList.remove('visible');
-      }
-    });
-
-    // Settings
-    settingsBtn.addEventListener('click', () => {
-      settingsOverlay.classList.add('visible');
-    });
-
-    settingsClose.addEventListener('click', () => {
-      settingsOverlay.classList.remove('visible');
-      pendingSubmit = false; // Clear pending submit if they close without saving
-    });
-
-    settingsOverlay.addEventListener('click', (e) => {
-      if (e.target === settingsOverlay) {
-        settingsOverlay.classList.remove('visible');
-        pendingSubmit = false; // Clear pending submit if they close without saving
-      }
-    });
-
-    saveSettingsBtn.addEventListener('click', () => {
-      const key = apiKeyInput.value.trim();
-
-      if (!key) {
-        alert('Please enter your Anthropic API key');
-        return;
-      }
-
-      // Always use the hardcoded proxy URL
-      localStorage.setItem('oneiros_api_key', key);
-      localStorage.setItem('oneiros_proxy', PROXY_URL);
-      settingsOverlay.classList.remove('visible');
-
-      console.log('Settings saved. API key starts with:', key.substring(0, 10) + '...');
-      console.log('Proxy URL:', PROXY_URL);
-
-      // If we were trying to submit when settings opened, auto-submit now
-      if (pendingSubmit) {
-        pendingSubmit = false;
-        console.log('Auto-submitting dream after settings save...');
-        submitDream(); // Call the submit function directly
       }
     });
 
