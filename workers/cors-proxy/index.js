@@ -4,7 +4,10 @@
  * This Cloudflare Worker acts as a proxy to enable browser-based applications
  * to communicate with the Anthropic API without CORS issues.
  *
- * Used by: Ekphrasis (image-to-poetry app)
+ * The API key is stored as an environment variable (ANTHROPIC_API_KEY) in the
+ * worker configuration, so clients don't need to provide their own keys.
+ *
+ * Used by: Ekphrasis, Oneiros
  */
 
 export default {
@@ -33,12 +36,26 @@ export default {
       const headers = new Headers();
       headers.set('Content-Type', 'application/json');
 
-      // Copy important headers from original request
-      const apiKey = request.headers.get('x-api-key');
-      const anthropicVersion = request.headers.get('anthropic-version');
+      // Use the API key from environment variable (Cloudflare secret)
+      // This allows the worker to provide API access without exposing the key to clients
+      if (!env.ANTHROPIC_API_KEY) {
+        return new Response(JSON.stringify({
+          error: 'Configuration error',
+          message: 'ANTHROPIC_API_KEY not configured in worker environment'
+        }), {
+          status: 500,
+          headers: {
+            ...corsHeaders(),
+            'Content-Type': 'application/json',
+          }
+        });
+      }
 
-      if (apiKey) headers.set('x-api-key', apiKey);
-      if (anthropicVersion) headers.set('anthropic-version', anthropicVersion);
+      headers.set('x-api-key', env.ANTHROPIC_API_KEY);
+
+      // Use latest API version or accept from request
+      const anthropicVersion = request.headers.get('anthropic-version') || '2023-06-01';
+      headers.set('anthropic-version', anthropicVersion);
 
       // Forward request to Anthropic API
       const response = await fetch('https://api.anthropic.com/v1/messages', {
